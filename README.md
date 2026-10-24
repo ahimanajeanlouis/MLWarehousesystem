@@ -59,7 +59,7 @@ http://127.0.0.1:8000/
 <<<<<<< HEAD
 ## Assigning roles
 
-After creating an account, sign in to `/admin/` with a Django superuser and open **User roles**. Assign the user a Manager or module-specific operator role. New accounts have no permissions until a role is assigned. Managers and superusers can access all warehouse modules; operator roles can access their module and its dashboard summary.
+After creating an account, sign in to `/admin/` with a Django superuser and open **Staff profiles**. Assign the user a Manager or module-specific operator role. New accounts default to read-only dashboard access until their role is changed. Managers and administrators can access all warehouse modules; operator roles can access their module and its dashboard summary.
 
 =======
 >>>>>>> origin/main

@@ -1,28 +1,5 @@
-<<<<<<< HEAD
-from django.db import models
-from django.contrib.auth.models import User
-
-
-class UserRole(models.Model):
-    ROLE_CHOICES = [
-        ("MANAGER", "Manager"),
-        ("RECEIVING", "Receiving Operator"),
-        ("PUTAWAY", "Putaway Operator"),
-        ("INVENTORY", "Inventory Operator"),
-        ("PICKING", "Picking Operator"),
-        ("PACKING", "Packing Operator"),
-        ("SHIPPING", "Shipping Operator"),
-    ]
-
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="role_profile")
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, blank=True)
-
-    def __str__(self):
-        return f"{self.user.username}: {self.get_role_display() or 'Unassigned'}"
-=======
 from datetime import date
 from django.db import models
->>>>>>> origin/main
 
 
 # =========================
@@ -32,14 +9,11 @@ class Product(models.Model):
     name = models.CharField(max_length=100)
     sku = models.CharField(max_length=50, unique=True)
     quantity = models.IntegerField(default=0)
-<<<<<<< HEAD
-=======
     barcode = models.CharField(max_length=100, blank=True, db_index=True)
     category = models.CharField(max_length=100, blank=True)
     unit_of_measure = models.CharField(max_length=30, default="piece")
     reorder_level = models.PositiveIntegerField(default=5)
     lead_time_days = models.PositiveIntegerField(default=0)
->>>>>>> origin/main
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -102,11 +76,8 @@ class Receiving(models.Model):
     expiry_date = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=20, default='RECEIVED')
     inventory_updated = models.BooleanField(default=False)
-<<<<<<< HEAD
-=======
     supplier_record = models.ForeignKey("Supplier", on_delete=models.PROTECT, null=True, blank=True, related_name="receipts")
     batch_number = models.CharField(max_length=80, blank=True)
->>>>>>> origin/main
 
     def total_price(self):
         return self.quantity * self.unit_price   
@@ -123,10 +94,7 @@ class Putaway(models.Model):
     )
 
     location = models.CharField(max_length=50)
-<<<<<<< HEAD
-=======
     location_ref = models.ForeignKey("WarehouseLocation", on_delete=models.PROTECT, null=True, blank=True, related_name="putaways")
->>>>>>> origin/main
 
     status = models.CharField(
         max_length=20,
@@ -165,19 +133,14 @@ class Shipping(models.Model):
     quantity = models.IntegerField()
     destination = models.CharField(max_length=100)
     status = models.CharField(max_length=20, default='IN_TRANSIT')
-<<<<<<< HEAD
-=======
     carrier = models.CharField(max_length=100, blank=True)
     tracking_number = models.CharField(max_length=100, blank=True, db_index=True)
     proof_of_delivery = models.TextField(blank=True)
     delivered_at = models.DateTimeField(null=True, blank=True)
->>>>>>> origin/main
     shipped_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.order_ref
-<<<<<<< HEAD
-=======
 
 # =========================
 # MASTER DATA AND STOCK CONTROL (WMS UPDATE)
@@ -359,9 +322,8 @@ class ProductBatch(models.Model):
     def __str__(self): return f'{self.product.sku} / {self.batch_number}'
 
 class StaffProfile(models.Model):
-    ROLES = [('ADMIN','Administrator'),('MANAGER','Warehouse manager'),('RECEIVER','Receiver'),('PICKER','Picker'),('PACKER','Packer'),('SHIPPER','Shipper'),('VIEWER','Read-only viewer')]
+    ROLES = [('ADMIN','Administrator'),('MANAGER','Warehouse manager'),('RECEIVER','Receiver'),('PUTAWAY','Putaway operator'),('INVENTORY','Inventory operator'),('PICKER','Picker'),('PACKER','Packer'),('SHIPPER','Shipper'),('VIEWER','Read-only viewer')]
     user = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='staff_profile')
     role = models.CharField(max_length=12, choices=ROLES, default='VIEWER')
     active = models.BooleanField(default=True)
     def __str__(self): return f'{self.user.username} — {self.role}'
->>>>>>> origin/main

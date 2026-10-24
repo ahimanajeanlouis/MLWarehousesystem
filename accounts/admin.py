@@ -1,11 +1,11 @@
 from django.contrib import admin
 <<<<<<< HEAD
-from .models import Product, UserRole, WarehouseActivity, Receiving, Putaway, Picking, Packing, Shipping
+from .models import Product, StaffProfile, WarehouseActivity, Receiving, Putaway, Picking, Packing, Shipping
 
-@admin.register(UserRole)
-class UserRoleAdmin(admin.ModelAdmin):
+@admin.register(StaffProfile)
+class StaffProfileAdmin(admin.ModelAdmin):
 	list_display = ("user", "role")
-	list_filter = ("role",)
+    list_filter = ("role", "active")
 	search_fields = ("user__username", "user__email")
 
 

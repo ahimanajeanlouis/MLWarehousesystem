@@ -3,7 +3,7 @@ from django.db.models import Sum
 from django.test import TestCase
 
 <<<<<<< HEAD
-from .models import Packing, Picking, Product, Putaway, Receiving, Shipping, UserRole
+from .models import Packing, Picking, Product, Putaway, Receiving, Shipping, StaffProfile
 =======
 from .models import Packing, Picking, Product, Putaway, Receiving, Shipping
 >>>>>>> origin/main
@@ -13,7 +13,7 @@ class ReceivingPutawayInventoryTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="warehouse-user", password="test-password")
 <<<<<<< HEAD
-        UserRole.objects.create(user=self.user, role="MANAGER")
+        StaffProfile.objects.create(user=self.user, role="MANAGER")
 =======
 >>>>>>> origin/main
         self.client.force_login(self.user)
@@ -201,7 +201,7 @@ class ReceivingPutawayInventoryTests(TestCase):
 class RoleAccessTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="receiving-user", password="test-password")
-        UserRole.objects.create(user=self.user, role="RECEIVING")
+        StaffProfile.objects.create(user=self.user, role="RECEIVER")
         self.client.force_login(self.user)
 
     def test_role_can_access_its_module_and_dashboard(self):

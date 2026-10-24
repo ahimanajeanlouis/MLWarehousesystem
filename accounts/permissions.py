@@ -4,26 +4,30 @@ from django.http import HttpResponseForbidden
 
 
 ROLE_MODULES = {
+    "ADMIN": {"dashboard", "receiving", "putaway", "inventory", "picking", "packing", "shipping"},
     "MANAGER": {"dashboard", "receiving", "putaway", "inventory", "picking", "packing", "shipping"},
-    "RECEIVING": {"dashboard", "receiving"},
+    "RECEIVER": {"dashboard", "receiving"},
     "PUTAWAY": {"dashboard", "putaway"},
     "INVENTORY": {"dashboard", "inventory"},
-    "PICKING": {"dashboard", "picking"},
-    "PACKING": {"dashboard", "packing"},
-    "SHIPPING": {"dashboard", "shipping"},
+    "PICKER": {"dashboard", "picking"},
+    "PACKER": {"dashboard", "packing"},
+    "SHIPPER": {"dashboard", "shipping"},
+    "VIEWER": {"dashboard"},
 }
 
 
 def modules_for_user(user):
     if user.is_superuser:
-        return set(ROLE_MODULES["MANAGER"])
+        return set(ROLE_MODULES["ADMIN"])
 
     try:
-        role = user.role_profile.role
+        profile = user.staff_profile
     except AttributeError:
         return set()
 
-    return set(ROLE_MODULES.get(role, set()))
+    if not profile.active:
+        return set()
+    return set(ROLE_MODULES.get(profile.role, set()))
 
 
 def module_required(module):

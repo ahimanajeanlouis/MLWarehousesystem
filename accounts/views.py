@@ -31,7 +31,7 @@ from .models import (
     Shipping,
 <<<<<<< HEAD
     WarehouseActivity,
-    UserRole,
+    StaffProfile,
 )
 from .permissions import module_required, modules_for_user
 =======
@@ -75,7 +75,7 @@ def register_page(request):
                 password=password,
             )
 <<<<<<< HEAD
-            UserRole.objects.create(user=user)
+            StaffProfile.objects.create(user=user)
 =======
 >>>>>>> origin/main
             messages.success(request, "Account created successfully. Please log in.")
