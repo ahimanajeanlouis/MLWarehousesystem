@@ -211,6 +211,10 @@ class RoleAccessTests(TestCase):
         self.assertContains(response, "Receiving")
         self.assertNotContains(response, "Inventory")
         self.assertNotContains(response, "Picking")
+        self.assertContains(response, 'name="period"')
+        self.assertContains(response, 'value="daily"')
+        self.assertContains(response, 'value="weekly"')
+        self.assertContains(response, 'value="monthly"')
 
     def test_unassigned_user_cannot_access_dashboard(self):
         user = User.objects.create_user(username="unassigned", password="test-password")
@@ -219,9 +223,20 @@ class RoleAccessTests(TestCase):
         self.assertEqual(self.client.get("/dashboard/").status_code, 403)
 
     def test_user_can_download_role_scoped_pdf_report(self):
-        response = self.client.get("/reports/download/")
+        response = self.client.get("/reports/download/?period=daily")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/pdf")
         self.assertIn("attachment;", response["Content-Disposition"])
         self.assertTrue(response.content.startswith(b"%PDF"))
+
+    def test_report_download_requires_valid_period(self):
+        self.assertEqual(self.client.get("/reports/download/").status_code, 400)
+        self.assertEqual(self.client.get("/reports/download/?period=yearly").status_code, 400)
+
+    def test_all_supported_report_periods_download_as_pdf(self):
+        for period in ("daily", "weekly", "monthly"):
+            with self.subTest(period=period):
+                response = self.client.get(f"/reports/download/?period={period}")
+                self.assertEqual(response.status_code, 200)
+                self.assertTrue(response.content.startswith(b"%PDF"))

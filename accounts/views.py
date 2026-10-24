@@ -156,6 +156,24 @@ def dashboard(request):
 @module_required("dashboard")
 def download_report(request):
     modules = modules_for_user(request.user)
+    period = request.GET.get("period", "")
+    if period not in {"daily", "weekly", "monthly"}:
+        return HttpResponse("Choose a valid report period.", status=400)
+
+    today = timezone.localdate()
+    if period == "daily":
+        start_date = end_date = today
+        period_label = "Daily"
+    elif period == "weekly":
+        start_date = today - timedelta(days=today.weekday())
+        end_date = start_date + timedelta(days=6)
+        period_label = "Weekly"
+    else:
+        start_date = date(today.year, today.month, 1)
+        next_month = date(today.year + (today.month == 12), today.month % 12 + 1, 1)
+        end_date = next_month - timedelta(days=1)
+        period_label = "Monthly"
+
     buffer = BytesIO()
     document = SimpleDocTemplate(
         buffer,
@@ -168,8 +186,9 @@ def download_report(request):
     styles = getSampleStyleSheet()
     cell_style = ParagraphStyle("ReportCell", parent=styles["BodyText"], fontSize=8, leading=10)
     story = [
-        Paragraph("Warehouse Operations Report", styles["Title"]),
+        Paragraph(f"{period_label} Warehouse Operations Report", styles["Title"]),
         Paragraph(f"User: {escape(request.user.username)}", styles["Normal"]),
+        Paragraph(f"Report period: {start_date:%Y-%m-%d} to {end_date:%Y-%m-%d}", styles["Normal"]),
         Paragraph(f"Generated: {timezone.localtime():%Y-%m-%d %H:%M}", styles["Normal"]),
     ]
 
@@ -204,47 +223,64 @@ def download_report(request):
         story.extend([table, Spacer(1, 14)])
 
     if "receiving" in modules:
-        records = Receiving.objects.order_by("-received_date")[:100]
+        records = Receiving.objects.filter(
+            received_date__date__gte=start_date,
+            received_date__date__lte=end_date,
+        ).order_by("-received_date")
         add_section("Receiving", ["Product", "SKU", "Quantity", "Status", "Received"], [
             (item.product_name, item.sku, item.quantity, item.status, item.received_date.strftime("%Y-%m-%d"))
             for item in records
         ])
     if "putaway" in modules:
-        records = Putaway.objects.select_related("receiving").order_by("-created_at")[:100]
+        records = Putaway.objects.filter(
+            created_at__date__gte=start_date,
+            created_at__date__lte=end_date,
+        ).select_related("receiving").order_by("-created_at")
         add_section("Putaway", ["SKU", "Product", "Location", "Status", "Created"], [
             (item.receiving.sku, item.receiving.product_name, item.location, item.status, item.created_at.strftime("%Y-%m-%d"))
             for item in records
         ])
     if "inventory" in modules:
-        records = Product.objects.order_by("name")[:100]
+        records = Product.objects.order_by("name")
         add_section("Inventory", ["SKU", "Product", "Quantity", "Category", "Reorder level"], [
             (item.sku, item.name, item.quantity, item.category, item.reorder_level)
             for item in records
         ])
     if "picking" in modules:
-        records = Picking.objects.order_by("-created_at")[:100]
+        records = Picking.objects.filter(
+            created_at__date__gte=start_date,
+            created_at__date__lte=end_date,
+        ).order_by("-created_at")
         add_section("Picking", ["Order", "Product", "SKU", "Quantity", "Status"], [
             (item.order_reference, item.product_name, item.sku, item.quantity, item.status)
             for item in records
         ])
     if "packing" in modules:
-        records = Packing.objects.select_related("product").order_by("-created_at")[:100]
+        records = Packing.objects.filter(
+            created_at__date__gte=start_date,
+            created_at__date__lte=end_date,
+        ).select_related("product").order_by("-created_at")
         add_section("Packing", ["Order", "Product", "SKU", "Quantity", "Status"], [
             (item.order_ref, item.product.name, item.product.sku, item.quantity, item.status)
             for item in records
         ])
     if "shipping" in modules:
-        records = Shipping.objects.select_related("product").order_by("-shipped_at")[:100]
+        records = Shipping.objects.filter(
+            shipped_at__date__gte=start_date,
+            shipped_at__date__lte=end_date,
+        ).select_related("product").order_by("-shipped_at")
         add_section("Shipping", ["Order", "Product", "SKU", "Quantity", "Destination", "Status"], [
             (item.order_ref, item.product.name, item.product.sku, item.quantity, item.destination, item.status)
             for item in records
         ])
     if not any(module in modules for module in ("receiving", "putaway", "inventory", "picking", "packing", "shipping")):
         story.append(Paragraph("This account has dashboard-only access and no operational records to include.", styles["Normal"]))
+    elif "inventory" in modules:
+        story.append(Paragraph("Inventory is a current-stock snapshot; the selected period applies to operational records.", styles["Normal"]))
 
     document.build(story)
     response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="warehouse-report-{request.user.username}.pdf"'
+    response["Content-Disposition"] = f'attachment; filename="warehouse-report-{period}-{request.user.username}.pdf"'
     return response
 
 

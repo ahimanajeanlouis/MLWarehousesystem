@@ -69,7 +69,16 @@
         <i class="fa-solid fa-user"></i>
         {{ request.user.username }}
       </div>
-      <a class="btn" href="{% url 'download_report' %}">Download my report (PDF)</a>
+      <form method="get" action="{% url 'download_report' %}">
+        <label for="report-period">Report period</label>
+        <select id="report-period" name="period" required>
+          <option value="" selected disabled>Select period</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+        <button class="btn" type="submit">Download PDF</button>
+      </form>
     </header>
 
     <!-- 6 CORE OPERATIONS -->
