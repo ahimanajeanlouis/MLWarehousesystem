@@ -7,10 +7,7 @@ A complete beginner-friendly warehouse workflow:
 ## Main features
 
 - User registration and login
-<<<<<<< HEAD
 - Role-based access for managers and warehouse operators
-=======
->>>>>>> origin/main
 - Protected warehouse pages
 - Dashboard with operation counts and activity log
 - FEFO-style expiry alerts
@@ -56,13 +53,10 @@ http://127.0.0.1:8000/
 9. Ship the packed quantity to a destination.
 10. Check the dashboard activity log and inventory.
 
-<<<<<<< HEAD
 ## Assigning roles
 
 After creating an account, sign in to `/admin/` with a Django superuser and open **Staff profiles**. Assign the user a Manager or module-specific operator role. New accounts default to read-only dashboard access until their role is changed. Managers and administrators can access all warehouse modules; operator roles can access their module and its dashboard summary.
 
-=======
->>>>>>> origin/main
 ## Deployment
 
 Set these environment variables on the hosting platform:

@@ -4,8 +4,8 @@ from django.http import HttpResponseForbidden
 
 
 ROLE_MODULES = {
-    "ADMIN": {"dashboard", "receiving", "putaway", "inventory", "picking", "packing", "shipping"},
-    "MANAGER": {"dashboard", "receiving", "putaway", "inventory", "picking", "packing", "shipping"},
+    "ADMIN": {"dashboard", "receiving", "putaway", "inventory", "picking", "packing", "shipping", "management"},
+    "MANAGER": {"dashboard", "receiving", "putaway", "inventory", "picking", "packing", "shipping", "management"},
     "RECEIVER": {"dashboard", "receiving"},
     "PUTAWAY": {"dashboard", "putaway"},
     "INVENTORY": {"dashboard", "inventory"},

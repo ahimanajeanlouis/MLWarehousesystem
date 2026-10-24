@@ -12,8 +12,6 @@ urlpatterns = [
     path("picking/", views.picking_page, name="picking"),
     path("packing/", views.packing_page, name="packing"),
     path("shipping/", views.shipping_page, name="shipping"),
-<<<<<<< HEAD
-=======
     path("suppliers/", views.suppliers_page, name="suppliers"),
     path("customers/", views.customers_page, name="customers"),
     path("locations/", views.locations_page, name="locations"),
@@ -34,5 +32,4 @@ urlpatterns = [
     path('inventory/import/', views.import_inventory, name='import_inventory'),
     path('staff-roles/', views.staff_roles_page, name='staff_roles'),
     path('shipping/<int:shipment_id>/delivered/', views.confirm_delivery, name='confirm_delivery'),
->>>>>>> origin/main
 ]

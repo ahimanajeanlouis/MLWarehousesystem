@@ -15,11 +15,7 @@ class ReceivingForm(StyledModelForm):
         model = Receiving
         fields = [
             "product_name", "sku", "quantity", "unit_price",
-<<<<<<< HEAD
-            "supplier", "expiry_date", "condition",
-=======
             "supplier", "supplier_record", "batch_number", "expiry_date", "condition",
->>>>>>> origin/main
         ]
         widgets = {
             "quantity": forms.NumberInput(attrs={"min": 1}),
@@ -55,11 +51,7 @@ class PutawayForm(StyledModelForm):
 
     class Meta:
         model = Putaway
-<<<<<<< HEAD
-        fields = ["receiving", "location"]
-=======
         fields = ["receiving", "location", "location_ref"]
->>>>>>> origin/main
 
     def clean_location(self):
         value = self.cleaned_data["location"].strip()
@@ -212,11 +204,7 @@ class ShippingForm(StyledModelForm):
 
     class Meta:
         model = Shipping
-<<<<<<< HEAD
-        fields = ["order_ref", "product", "quantity", "destination"]
-=======
         fields = ["order_ref", "product", "quantity", "destination", "carrier", "tracking_number"]
->>>>>>> origin/main
         widgets = {
             "quantity": forms.NumberInput(attrs={"min": 1}),
             "destination": forms.TextInput(attrs={"placeholder": "Customer / delivery address"}),
@@ -233,8 +221,6 @@ class ShippingForm(StyledModelForm):
         if not value:
             raise forms.ValidationError("Destination is required.")
         return value
-<<<<<<< HEAD
-=======
 
 from .models import Customer, Supplier, WarehouseLocation, StockAdjustment
 
@@ -316,4 +302,3 @@ class ProductBatchForm(StyledModelForm):
         model = ProductBatch
         fields = ['product','batch_number','quantity','received_date','expiry_date','quarantined']
         widgets = {'received_date': forms.DateInput(attrs={'type':'date'}), 'expiry_date': forms.DateInput(attrs={'type':'date'})}
->>>>>>> origin/main

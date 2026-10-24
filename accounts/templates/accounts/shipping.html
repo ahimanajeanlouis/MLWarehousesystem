@@ -22,7 +22,6 @@
     </div>
 
     <nav class="menu">
-<<<<<<< HEAD
   {% if 'dashboard' in accessible_modules %}<a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i class="fa-solid fa-gauge"></i> Dashboard</a>{% endif %}
   {% if 'receiving' in accessible_modules %}<a href="{% url 'receiving' %}" class="{% if request.resolver_match.url_name == 'receiving' %}active{% endif %}"><i class="fa-solid fa-truck-ramp-box"></i> Receiving</a>{% endif %}
   {% if 'putaway' in accessible_modules %}<a href="{% url 'putaway' %}" class="{% if request.resolver_match.url_name == 'putaway' %}active{% endif %}"><i class="fa-solid fa-boxes-stacked"></i> Putaway</a>{% endif %}
@@ -30,15 +29,6 @@
   {% if 'picking' in accessible_modules %}<a href="{% url 'picking' %}" class="{% if request.resolver_match.url_name == 'picking' %}active{% endif %}"><i class="fa-solid fa-hand-pointer"></i> Picking</a>{% endif %}
   {% if 'packing' in accessible_modules %}<a href="{% url 'packing' %}" class="{% if request.resolver_match.url_name == 'packing' %}active{% endif %}"><i class="fa-solid fa-box"></i> Packing</a>{% endif %}
   {% if 'shipping' in accessible_modules %}<a href="{% url 'shipping' %}" class="{% if request.resolver_match.url_name == 'shipping' %}active{% endif %}"><i class="fa-solid fa-truck-fast"></i> Shipping</a>{% endif %}
-=======
-  <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i class="fa-solid fa-gauge"></i> Dashboard</a>
-  <a href="{% url 'receiving' %}" class="{% if request.resolver_match.url_name == 'receiving' %}active{% endif %}"><i class="fa-solid fa-truck-ramp-box"></i> Receiving</a>
-  <a href="{% url 'putaway' %}" class="{% if request.resolver_match.url_name == 'putaway' %}active{% endif %}"><i class="fa-solid fa-boxes-stacked"></i> Putaway</a>
-  <a href="{% url 'inventory' %}" class="{% if request.resolver_match.url_name == 'inventory' %}active{% endif %}"><i class="fa-solid fa-warehouse"></i> Inventory</a>
-  <a href="{% url 'picking' %}" class="{% if request.resolver_match.url_name == 'picking' %}active{% endif %}"><i class="fa-solid fa-hand-pointer"></i> Picking</a>
-  <a href="{% url 'packing' %}" class="{% if request.resolver_match.url_name == 'packing' %}active{% endif %}"><i class="fa-solid fa-box"></i> Packing</a>
-  <a href="{% url 'shipping' %}" class="{% if request.resolver_match.url_name == 'shipping' %}active{% endif %}"><i class="fa-solid fa-truck-fast"></i> Shipping</a>
->>>>>>> origin/main
   <form method="POST" action="{% url 'logout' %}">
     {% csrf_token %}
     <button type="submit" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
@@ -97,6 +87,14 @@
           <div class="error">{{ form.destination.errors }}</div>
         {% endif %}
 
+        <label>Carrier</label>
+        {{ form.carrier }}
+        {% if form.carrier.errors %}<div class="error">{{ form.carrier.errors }}</div>{% endif %}
+
+        <label>Tracking Number</label>
+        {{ form.tracking_number }}
+        {% if form.tracking_number.errors %}<div class="error">{{ form.tracking_number.errors }}</div>{% endif %}
+
         <button type="submit">Ship Order</button>
       </form>
 
@@ -116,13 +114,10 @@
             <th>Qty</th>
             <th>Destination</th>
             <th>Status</th>
-<<<<<<< HEAD
             <th>Date</th>
-=======
             <th>Carrier / Tracking</th>
             <th>Date</th>
             <th>Delivery confirmation</th>
->>>>>>> origin/main
           </tr>
         </thead>
 
@@ -135,21 +130,13 @@
             <td>{{ s.quantity }}</td>
             <td>{{ s.destination }}</td>
             <td>{{ s.status }}</td>
-<<<<<<< HEAD
-            <td>{{ s.shipped_at }}</td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="6">No shipments found</td>
-=======
             <td>{{ s.carrier }} {{ s.tracking_number }}</td>
             <td>{{ s.shipped_at }}</td>
-            <td>{% if s.status != "DELIVERED" and user.is_staff %}<form method="post" action="{% url 'confirm_delivery' s.pk %}">{% csrf_token %}<input name="proof_of_delivery" placeholder="POD note / reference"><button type="submit">Confirm delivered</button></form>{% elif s.delivered_at %}{{ s.delivered_at }}{% endif %}</td>
+            <td>{% if s.status != "DELIVERED" and 'management' in accessible_modules %}<form method="post" action="{% url 'confirm_delivery' s.pk %}">{% csrf_token %}<input name="proof_of_delivery" placeholder="POD note / reference"><button type="submit">Confirm delivered</button></form>{% elif s.delivered_at %}{{ s.delivered_at }}{% endif %}</td>
           </tr>
           {% empty %}
           <tr>
             <td colspan="8">No shipments found</td>
->>>>>>> origin/main
           </tr>
           {% endfor %}
 

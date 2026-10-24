@@ -5,14 +5,11 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-<<<<<<< HEAD
-from django.db import transaction
-=======
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import F
->>>>>>> origin/main
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import (
@@ -29,15 +26,14 @@ from .models import (
     Putaway,
     Receiving,
     Shipping,
-<<<<<<< HEAD
     WarehouseActivity,
+    ProductLocation,
+    ProductBatch,
+    Order,
+    OrderLine,
     StaffProfile,
 )
 from .permissions import module_required, modules_for_user
-=======
-    WarehouseActivity, ProductLocation, ProductBatch, Order, OrderLine,
-)
->>>>>>> origin/main
 
 
 # =========================
@@ -65,19 +61,12 @@ def register_page(request):
         elif User.objects.filter(email__iexact=email).exists():
             messages.error(request, "Email is already registered.")
         else:
-<<<<<<< HEAD
             user = User.objects.create_user(
-=======
-            User.objects.create_user(
->>>>>>> origin/main
                 username=username,
                 email=email,
                 password=password,
             )
-<<<<<<< HEAD
             StaffProfile.objects.create(user=user)
-=======
->>>>>>> origin/main
             messages.success(request, "Account created successfully. Please log in.")
             return redirect("login")
 
@@ -94,17 +83,12 @@ def login_page(request):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-<<<<<<< HEAD
-            login(request, user)
-            return redirect(request.GET.get("next") or "dashboard")
-=======
             profile = getattr(user, "staff_profile", None)
             if profile is not None and not profile.active:
                 messages.error(request, "Your warehouse account is inactive. Contact an administrator.")
             else:
                 login(request, user)
                 return redirect(request.GET.get("next") or "dashboard")
->>>>>>> origin/main
 
         messages.error(request, "Invalid username or password.")
 
@@ -122,10 +106,7 @@ def logout_page(request):
 # =========================
 
 @login_required(login_url="login")
-<<<<<<< HEAD
 @module_required("dashboard")
-=======
->>>>>>> origin/main
 def dashboard(request):
     today = date.today()
     warning_date = today + timedelta(days=30)
@@ -143,10 +124,7 @@ def dashboard(request):
         else:
             item.row_class = "safe"
 
-<<<<<<< HEAD
     modules = modules_for_user(request.user)
-=======
->>>>>>> origin/main
     context = {
         "products_count": Product.objects.count(),
         "receiving": Receiving.objects.count(),
@@ -155,16 +133,11 @@ def dashboard(request):
         "picking": Picking.objects.count(),
         "packing": Packing.objects.count(),
         "shipping": Shipping.objects.count(),
-<<<<<<< HEAD
         "activities": WarehouseActivity.objects.filter(
             activity_type__in=[module.upper() for module in modules if module != "dashboard"]
         ).order_by("-created_at")[:15],
         "expiring_batches": expiring_items[:20] if "receiving" in modules else [],
         "dashboard_modules": modules,
-=======
-        "activities": WarehouseActivity.objects.all().order_by("-created_at")[:15],
-        "expiring_batches": expiring_items[:20],
->>>>>>> origin/main
         "today": today,
         "warning_date": warning_date,
     }
@@ -176,28 +149,18 @@ def dashboard(request):
 # =========================
 
 @login_required(login_url="login")
-<<<<<<< HEAD
 @module_required("inventory")
-def inventory_page(request):
-    products = Product.objects.all().order_by("name")
-    low_stock = Product.objects.filter(quantity__lte=5).order_by("quantity", "name")
-=======
 def inventory_page(request):
     products = Product.objects.all().order_by("name")
     query = request.GET.get("q", "").strip()
     if query:
         products = products.filter(Q(name__icontains=query) | Q(sku__icontains=query) | Q(barcode__icontains=query) | Q(category__icontains=query))
     low_stock = Product.objects.filter(quantity__lte=F("reorder_level")).order_by("quantity", "name")
->>>>>>> origin/main
 
     return render(
         request,
         "accounts/inventory.html",
-<<<<<<< HEAD
-        {"products": products, "low_stock": low_stock},
-=======
         {"products": products, "low_stock": low_stock, "query": query},
->>>>>>> origin/main
     )
 
 
@@ -206,10 +169,7 @@ def inventory_page(request):
 # =========================
 
 @login_required(login_url="login")
-<<<<<<< HEAD
 @module_required("receiving")
-=======
->>>>>>> origin/main
 def receiving_page(request):
     form = ReceivingForm(request.POST or None)
 
@@ -238,10 +198,7 @@ def receiving_page(request):
 # =========================
 
 @login_required(login_url="login")
-<<<<<<< HEAD
 @module_required("putaway")
-=======
->>>>>>> origin/main
 def putaway_page(request):
     form = PutawayForm(request.POST or None)
 
@@ -278,8 +235,6 @@ def putaway_page(request):
                     receiving.inventory_updated = True
                     receiving.save(update_fields=["inventory_updated"])
 
-<<<<<<< HEAD
-=======
                 product = Product.objects.get(sku=receiving.sku)
                 if putaway.location_ref_id:
                     stock, _ = ProductLocation.objects.get_or_create(product=product, location=putaway.location_ref, defaults={"quantity": 0})
@@ -294,8 +249,6 @@ def putaway_page(request):
                         if receiving.expiry_date and not batch.expiry_date:
                             batch.expiry_date = receiving.expiry_date
                         batch.save(update_fields=["quantity", "expiry_date"])
-
->>>>>>> origin/main
                 WarehouseActivity.objects.create(
                     activity_type="PUTAWAY",
                     reference=f"PUT-{receiving.sku}",
@@ -313,7 +266,6 @@ def putaway_page(request):
 # =========================
 
 @login_required(login_url="login")
-<<<<<<< HEAD
 @module_required("picking")
 def picking_page(request):
     form = PickingForm(request.POST or None)
@@ -322,14 +274,7 @@ def picking_page(request):
         quantity = form.cleaned_data["quantity"]
         selected_product = form.cleaned_data["product"]
 
-=======
-def picking_page(request):
-    form = PickingForm(request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        quantity = form.cleaned_data["quantity"]
-        selected_product = form.cleaned_data["product"]
         order_ref = form.cleaned_data["order_reference"].strip()
->>>>>>> origin/main
         with transaction.atomic():
             try:
                 product = Product.objects.select_for_update().get(pk=selected_product.pk)
@@ -339,33 +284,6 @@ def picking_page(request):
                 if product.quantity <= 0:
                     form.add_error("product", "This product is out of stock.")
                 elif product.quantity < quantity:
-<<<<<<< HEAD
-                    form.add_error(
-                        "quantity",
-                        f"Insufficient stock. Available quantity: {product.quantity}.",
-                    )
-                else:
-                    data = Picking.objects.create(
-                        product_name=product.name,
-                        sku=product.sku,
-                        quantity=quantity,
-                        order_reference=form.cleaned_data["order_reference"],
-                    )
-                    product.quantity -= quantity
-                    product.save(update_fields=["quantity"])
-
-                    WarehouseActivity.objects.create(
-                        activity_type="PICKING",
-                        reference=f"PICK-{data.order_reference}",
-                        status="COMPLETED",
-                    )
-                    messages.success(
-                        request,
-                        f"Picking completed. {quantity} unit(s) reserved for order {data.order_reference}.",
-                    )
-                    return redirect("picking")
-
-=======
                     form.add_error("quantity", f"Insufficient stock. Available quantity: {product.quantity}.")
                 else:
                     order = Order.objects.filter(reference__iexact=order_ref).first()
@@ -385,7 +303,6 @@ def picking_page(request):
                         _audit(request, "PICK", "Picking", data.order_reference, f"{product.sku} x {quantity}")
                         messages.success(request, f"Picking completed. {quantity} unit(s) reserved for order {data.order_reference}.")
                         return redirect("picking")
->>>>>>> origin/main
     records = Picking.objects.all().order_by("-created_at")
     return render(request, "accounts/picking.html", {"form": form, "records": records})
 
@@ -395,10 +312,7 @@ def picking_page(request):
 # =========================
 
 @login_required(login_url="login")
-<<<<<<< HEAD
 @module_required("packing")
-=======
->>>>>>> origin/main
 def packing_page(request):
     form = PackingForm(
         request.POST if request.method == "POST" else None,
@@ -449,10 +363,7 @@ def packing_page(request):
 # =========================
 
 @login_required(login_url="login")
-<<<<<<< HEAD
 @module_required("shipping")
-=======
->>>>>>> origin/main
 def shipping_page(request):
     form = ShippingForm(
         request.POST if request.method == "POST" else None,
@@ -491,8 +402,6 @@ def shipping_page(request):
                 reference=f"SHP-{data.order_ref}",
                 status="COMPLETED",
             )
-<<<<<<< HEAD
-=======
             order = Order.objects.filter(reference__iexact=data.order_ref).first()
             if order and order.status != "CANCELLED":
                 all_fulfilled = True
@@ -505,14 +414,11 @@ def shipping_page(request):
                 order.status = "FULFILLED" if all_fulfilled and order.lines.exists() else ("PARTIALLY_FULFILLED" if any_shipped else "OPEN")
                 order.save(update_fields=["status", "updated_at"])
             _audit(request, "SHIP", "Shipment", data.order_ref, f"{data.product.sku} x {data.quantity} to {data.destination}")
->>>>>>> origin/main
             messages.success(request, "Shipment created successfully.")
             return redirect("shipping")
 
     records = Shipping.objects.select_related("product").all().order_by("-shipped_at")
     return render(request, "accounts/shipping.html", {"form": form, "records": records})
-<<<<<<< HEAD
-=======
 
 # =========================
 # MASTER DATA, STOCK CONTROL AND AUDIT (WMS UPDATE)
@@ -528,6 +434,7 @@ def _audit(request, action, object_type, reference="", details=""):
                             object_reference=str(reference), details=details)
 
 @login_required(login_url="login")
+@module_required("management")
 def suppliers_page(request):
     form = SupplierForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
@@ -538,6 +445,7 @@ def suppliers_page(request):
     return render(request, "accounts/master_data.html", {"page_title": "Suppliers", "form": form, "records": Supplier.objects.all(), "columns": ["code", "name", "contact_person", "phone", "email"]})
 
 @login_required(login_url="login")
+@module_required("management")
 def customers_page(request):
     form = CustomerForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
@@ -548,6 +456,7 @@ def customers_page(request):
     return render(request, "accounts/master_data.html", {"page_title": "Customers", "form": form, "records": Customer.objects.all(), "columns": ["code", "name", "contact_person", "phone", "email"]})
 
 @login_required(login_url="login")
+@module_required("management")
 def locations_page(request):
     form = WarehouseLocationForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
@@ -558,6 +467,7 @@ def locations_page(request):
     return render(request, "accounts/master_data.html", {"page_title": "Warehouse Locations", "form": form, "records": WarehouseLocation.objects.all(), "columns": ["warehouse", "zone", "aisle", "rack", "bin", "is_active"]})
 
 @login_required(login_url="login")
+@module_required("management")
 def adjustments_page(request):
     form = StockAdjustmentForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
@@ -571,8 +481,9 @@ def adjustments_page(request):
     return render(request, "accounts/adjustments.html", {"form": form, "records": records})
 
 @login_required(login_url="login")
+@module_required("management")
 def review_adjustment(request, adjustment_id, decision):
-    if not request.user.is_staff:
+    if not _manager_required(request):
         messages.error(request, "Only warehouse managers or administrators can review adjustments.")
         return redirect("adjustments")
     if request.method != "POST":
@@ -605,6 +516,7 @@ def review_adjustment(request, adjustment_id, decision):
     return redirect("adjustments")
 
 @login_required(login_url="login")
+@module_required("management")
 def reports_page(request):
     products = Product.objects.all().order_by("quantity", "name")
     context = {
@@ -630,6 +542,7 @@ def _manager_required(request):
     return request.user.is_superuser or request.user.is_staff or (hasattr(request.user, 'staff_profile') and request.user.staff_profile.role in ['ADMIN','MANAGER'])
 
 @login_required(login_url='login')
+@module_required("management")
 def transfers_page(request):
     form = StockTransferForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
@@ -642,6 +555,7 @@ def transfers_page(request):
     return render(request, 'accounts/operations.html', {'title':'Stock Transfers','form':form,'records':StockTransfer.objects.select_related('product','source','destination','requested_by'),'kind':'transfers'})
 
 @login_required(login_url='login')
+@module_required("management")
 def complete_transfer(request, transfer_id):
     if request.method != 'POST': return redirect('transfers')
     if not _manager_required(request):
@@ -668,6 +582,7 @@ def complete_transfer(request, transfer_id):
     return redirect('transfers')
 
 @login_required(login_url='login')
+@module_required("management")
 def orders_page(request):
     form = OrderForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
@@ -678,6 +593,7 @@ def orders_page(request):
     return render(request, 'accounts/operations.html', {'title':'Customer Orders','form':form,'records':Order.objects.select_related('customer','created_by').order_by('-created_at'),'kind':'orders'})
 
 @login_required(login_url='login')
+@module_required("management")
 def order_detail(request, order_id):
     order = get_object_or_404(Order.objects.select_related('customer'), pk=order_id)
     form = OrderLineForm(request.POST or None)
@@ -692,6 +608,7 @@ def order_detail(request, order_id):
     return render(request, 'accounts/order_detail.html', {'order':order,'form':form,'lines':order.lines.select_related('product').all()})
 
 @login_required(login_url='login')
+@module_required("management")
 def cancel_order(request, order_id):
     if request.method == 'POST':
         order = get_object_or_404(Order, pk=order_id)
@@ -704,6 +621,7 @@ def cancel_order(request, order_id):
     return redirect('orders')
 
 @login_required(login_url='login')
+@module_required("management")
 def cycle_counts_page(request):
     form = CycleCountForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
@@ -715,6 +633,7 @@ def cycle_counts_page(request):
     return render(request, 'accounts/operations.html', {'title':'Cycle Counts','form':form,'records':records,'kind':'cycle_counts'})
 
 @login_required(login_url='login')
+@module_required("management")
 def reconcile_count(request, count_id):
     if request.method != 'POST': return redirect('cycle_counts')
     if not _manager_required(request): messages.error(request, 'Only managers can reconcile counts.'); return redirect('cycle_counts')
@@ -734,6 +653,7 @@ def reconcile_count(request, count_id):
     return redirect('cycle_counts')
 
 @login_required(login_url='login')
+@module_required("management")
 def returns_page(request):
     form = ReturnRecordForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
@@ -745,6 +665,7 @@ def returns_page(request):
     return render(request,'accounts/operations.html',{'title':'Returns and Quarantine','form':form,'records':records,'kind':'returns'})
 
 @login_required(login_url='login')
+@module_required("management")
 def review_return(request, return_id, decision):
     if request.method != 'POST': return redirect('returns')
     if not _manager_required(request): messages.error(request,'Only managers can review returns.'); return redirect('returns')
@@ -771,6 +692,7 @@ def review_return(request, return_id, decision):
     return redirect('returns')
 
 @login_required(login_url='login')
+@module_required("management")
 def batches_page(request):
     form=ProductBatchForm(request.POST or None)
     if request.method=='POST' and form.is_valid():
@@ -780,8 +702,9 @@ def batches_page(request):
     return render(request,'accounts/operations.html',{'title':'Batch and Expiry Tracking','form':form,'records':ProductBatch.objects.select_related('product').all(),'kind':'batches'})
 
 @login_required(login_url='login')
+@module_required("management")
 def export_inventory(request):
-    if not request.user.is_staff and not request.user.is_superuser:
+    if not _manager_required(request):
         messages.error(request,'Only staff can export inventory.'); return redirect('inventory')
     response=HttpResponse(content_type='text/csv'); response['Content-Disposition']='attachment; filename="inventory.csv"'
     writer=csv.writer(response); writer.writerow(['SKU','Name','Barcode','Category','Quantity','UOM','Reorder level','Lead time days'])
@@ -791,6 +714,7 @@ def export_inventory(request):
     return response
 
 @login_required(login_url='login')
+@module_required("management")
 def staff_roles_page(request):
     if not _manager_required(request): messages.error(request,'Only managers can manage staff roles.'); return redirect('dashboard')
     if request.method=='POST':
@@ -806,6 +730,7 @@ def staff_roles_page(request):
 
 
 @login_required(login_url="login")
+@module_required("management")
 def confirm_delivery(request, shipment_id):
     if request.method != "POST": return redirect("shipping")
     if not _manager_required(request):
@@ -825,8 +750,9 @@ def confirm_delivery(request, shipment_id):
 
 
 @login_required(login_url="login")
+@module_required("management")
 def import_inventory(request):
-    if not request.user.is_staff and not request.user.is_superuser:
+    if not _manager_required(request):
         messages.error(request, "Only staff can import inventory.")
         return redirect("inventory")
     if request.method == "POST":
@@ -858,4 +784,3 @@ def import_inventory(request):
             messages.error(request, f"Import failed; no rows were saved. Check the CSV: {exc}")
         return redirect("inventory")
     return redirect("inventory")
->>>>>>> origin/main
