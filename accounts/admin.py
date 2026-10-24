@@ -1,5 +1,5 @@
 from django.contrib import admin
-<<<<<<< HEAD
+
 from .models import Product, StaffProfile, WarehouseActivity, Receiving, Putaway, Picking, Packing, Shipping
 
 @admin.register(StaffProfile)
@@ -16,7 +16,7 @@ admin.site.register(Putaway)
 admin.site.register(Picking)
 admin.site.register(Packing)
 admin.site.register(Shipping)
-=======
+
 from .models import (
     Product, WarehouseActivity, Receiving, Putaway, Picking, Packing, Shipping,
     Supplier, Customer, WarehouseLocation, ProductLocation, StockAdjustment,
@@ -41,4 +41,4 @@ for model in [WarehouseActivity, Putaway, Picking, Packing, Shipping, Supplier, 
               Order, OrderLine, CycleCount, ReturnRecord, ProductBatch, StaffProfile]:
     try: admin.site.register(model)
     except admin.sites.AlreadyRegistered: pass
->>>>>>> origin/main
+
