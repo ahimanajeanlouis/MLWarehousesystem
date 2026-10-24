@@ -217,3 +217,11 @@ class RoleAccessTests(TestCase):
         self.client.force_login(user)
 
         self.assertEqual(self.client.get("/dashboard/").status_code, 403)
+
+    def test_user_can_download_role_scoped_pdf_report(self):
+        response = self.client.get("/reports/download/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertIn("attachment;", response["Content-Disposition"])
+        self.assertTrue(response.content.startswith(b"%PDF"))

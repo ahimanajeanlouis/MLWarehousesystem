@@ -1,5 +1,7 @@
 from datetime import date, timedelta
 from decimal import Decimal
+from html import escape
+from io import BytesIO
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -10,7 +12,13 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import F
 from django.db.models import Q
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from .forms import (
     PackingForm,
@@ -142,6 +150,102 @@ def dashboard(request):
         "warning_date": warning_date,
     }
     return render(request, "accounts/dashboard.html", context)
+
+
+@login_required(login_url="login")
+@module_required("dashboard")
+def download_report(request):
+    modules = modules_for_user(request.user)
+    buffer = BytesIO()
+    document = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(A4),
+        rightMargin=28,
+        leftMargin=28,
+        topMargin=28,
+        bottomMargin=28,
+    )
+    styles = getSampleStyleSheet()
+    cell_style = ParagraphStyle("ReportCell", parent=styles["BodyText"], fontSize=8, leading=10)
+    story = [
+        Paragraph("Warehouse Operations Report", styles["Title"]),
+        Paragraph(f"User: {escape(request.user.username)}", styles["Normal"]),
+        Paragraph(f"Generated: {timezone.localtime():%Y-%m-%d %H:%M}", styles["Normal"]),
+    ]
+
+    try:
+        role_label = request.user.staff_profile.get_role_display()
+    except AttributeError:
+        role_label = "Administrator"
+    story.extend([Paragraph(f"Role: {escape(role_label)}", styles["Normal"]), Spacer(1, 16)])
+
+    def add_section(title, headers, records):
+        story.append(Paragraph(escape(title), styles["Heading2"]))
+        if not records:
+            story.append(Paragraph("No records available.", styles["Normal"]))
+            story.append(Spacer(1, 10))
+            return
+        table_data = [[Paragraph(escape(str(value)), cell_style) for value in headers]]
+        table_data.extend(
+            [Paragraph(escape(str(value)), cell_style) for value in row]
+            for row in records
+        )
+        column_width = 786 / len(headers)
+        table = Table(table_data, colWidths=[column_width] * len(headers), repeatRows=1)
+        table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#24445c")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#b7c2ca")),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f1f5f7")]),
+            ("LEFTPADDING", (0, 0), (-1, -1), 5),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+        ]))
+        story.extend([table, Spacer(1, 14)])
+
+    if "receiving" in modules:
+        records = Receiving.objects.order_by("-received_date")[:100]
+        add_section("Receiving", ["Product", "SKU", "Quantity", "Status", "Received"], [
+            (item.product_name, item.sku, item.quantity, item.status, item.received_date.strftime("%Y-%m-%d"))
+            for item in records
+        ])
+    if "putaway" in modules:
+        records = Putaway.objects.select_related("receiving").order_by("-created_at")[:100]
+        add_section("Putaway", ["SKU", "Product", "Location", "Status", "Created"], [
+            (item.receiving.sku, item.receiving.product_name, item.location, item.status, item.created_at.strftime("%Y-%m-%d"))
+            for item in records
+        ])
+    if "inventory" in modules:
+        records = Product.objects.order_by("name")[:100]
+        add_section("Inventory", ["SKU", "Product", "Quantity", "Category", "Reorder level"], [
+            (item.sku, item.name, item.quantity, item.category, item.reorder_level)
+            for item in records
+        ])
+    if "picking" in modules:
+        records = Picking.objects.order_by("-created_at")[:100]
+        add_section("Picking", ["Order", "Product", "SKU", "Quantity", "Status"], [
+            (item.order_reference, item.product_name, item.sku, item.quantity, item.status)
+            for item in records
+        ])
+    if "packing" in modules:
+        records = Packing.objects.select_related("product").order_by("-created_at")[:100]
+        add_section("Packing", ["Order", "Product", "SKU", "Quantity", "Status"], [
+            (item.order_ref, item.product.name, item.product.sku, item.quantity, item.status)
+            for item in records
+        ])
+    if "shipping" in modules:
+        records = Shipping.objects.select_related("product").order_by("-shipped_at")[:100]
+        add_section("Shipping", ["Order", "Product", "SKU", "Quantity", "Destination", "Status"], [
+            (item.order_ref, item.product.name, item.product.sku, item.quantity, item.destination, item.status)
+            for item in records
+        ])
+    if not any(module in modules for module in ("receiving", "putaway", "inventory", "picking", "packing", "shipping")):
+        story.append(Paragraph("This account has dashboard-only access and no operational records to include.", styles["Normal"]))
+
+    document.build(story)
+    response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="warehouse-report-{request.user.username}.pdf"'
+    return response
 
 
 # =========================
