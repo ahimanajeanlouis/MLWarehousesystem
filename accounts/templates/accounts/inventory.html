@@ -22,6 +22,7 @@
     </div>
 
     <nav class="menu">
+<<<<<<< HEAD
   {% if 'dashboard' in accessible_modules %}<a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i class="fa-solid fa-gauge"></i> Dashboard</a>{% endif %}
   {% if 'receiving' in accessible_modules %}<a href="{% url 'receiving' %}" class="{% if request.resolver_match.url_name == 'receiving' %}active{% endif %}"><i class="fa-solid fa-truck-ramp-box"></i> Receiving</a>{% endif %}
   {% if 'putaway' in accessible_modules %}<a href="{% url 'putaway' %}" class="{% if request.resolver_match.url_name == 'putaway' %}active{% endif %}"><i class="fa-solid fa-boxes-stacked"></i> Putaway</a>{% endif %}
@@ -29,6 +30,20 @@
   {% if 'picking' in accessible_modules %}<a href="{% url 'picking' %}" class="{% if request.resolver_match.url_name == 'picking' %}active{% endif %}"><i class="fa-solid fa-hand-pointer"></i> Picking</a>{% endif %}
   {% if 'packing' in accessible_modules %}<a href="{% url 'packing' %}" class="{% if request.resolver_match.url_name == 'packing' %}active{% endif %}"><i class="fa-solid fa-box"></i> Packing</a>{% endif %}
   {% if 'shipping' in accessible_modules %}<a href="{% url 'shipping' %}" class="{% if request.resolver_match.url_name == 'shipping' %}active{% endif %}"><i class="fa-solid fa-truck-fast"></i> Shipping</a>{% endif %}
+=======
+  <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+  <a href="{% url 'receiving' %}" class="{% if request.resolver_match.url_name == 'receiving' %}active{% endif %}"><i class="fa-solid fa-truck-ramp-box"></i> Receiving</a>
+  <a href="{% url 'putaway' %}" class="{% if request.resolver_match.url_name == 'putaway' %}active{% endif %}"><i class="fa-solid fa-boxes-stacked"></i> Putaway</a>
+  <a href="{% url 'inventory' %}" class="{% if request.resolver_match.url_name == 'inventory' %}active{% endif %}"><i class="fa-solid fa-warehouse"></i> Inventory</a>
+  <a href="{% url 'picking' %}" class="{% if request.resolver_match.url_name == 'picking' %}active{% endif %}"><i class="fa-solid fa-hand-pointer"></i> Picking</a>
+  <a href="{% url 'packing' %}" class="{% if request.resolver_match.url_name == 'packing' %}active{% endif %}"><i class="fa-solid fa-box"></i> Packing</a>
+  <a href="{% url 'suppliers' %}">Suppliers</a>
+      <a href="{% url 'customers' %}">Customers</a>
+      <a href="{% url 'locations' %}">Locations</a>
+      <a href="{% url 'adjustments' %}">Stock Adjustments</a>
+      <a href="{% url 'reports' %}">Reports & Audit</a>
+      <a href="{% url 'shipping' %}" class="{% if request.resolver_match.url_name == 'shipping' %}active{% endif %}"><i class="fa-solid fa-truck-fast"></i> Shipping</a>
+>>>>>>> origin/main
   <form method="POST" action="{% url 'logout' %}">
     {% csrf_token %}
     <button type="submit" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
@@ -71,6 +86,10 @@
     <section class="panel">
 
       <h3>All Products</h3>
+<<<<<<< HEAD
+=======
+      <form method="get" class="mb-3"><input type="search" name="q" value="{{ query }}" placeholder="Search SKU, name, barcode, category"><button type="submit">Search</button> <a href="{% url 'inventory' %}">Clear</a> <a class="btn btn-outline-primary" href="{% url 'export_inventory' %}">Export inventory CSV</a> {% if user.is_staff %}<form method="post" action="{% url 'import_inventory' %}" enctype="multipart/form-data" style="display:inline">{% csrf_token %}<input type="file" name="file" accept=".csv" required><button type="submit">Import CSV</button></form>{% endif %}</form>
+>>>>>>> origin/main
 
       <table>
 
@@ -123,4 +142,8 @@
 </div>
 
 </body>
+<<<<<<< HEAD
 </html>
+=======
+</html>
+>>>>>>> origin/main

@@ -2,13 +2,20 @@ from django.contrib.auth.models import User
 from django.db.models import Sum
 from django.test import TestCase
 
+<<<<<<< HEAD
 from .models import Packing, Picking, Product, Putaway, Receiving, Shipping, UserRole
+=======
+from .models import Packing, Picking, Product, Putaway, Receiving, Shipping
+>>>>>>> origin/main
 
 
 class ReceivingPutawayInventoryTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="warehouse-user", password="test-password")
+<<<<<<< HEAD
         UserRole.objects.create(user=self.user, role="MANAGER")
+=======
+>>>>>>> origin/main
         self.client.force_login(self.user)
 
     def receive_goods(self, **overrides):
@@ -188,6 +195,7 @@ class ReceivingPutawayInventoryTests(TestCase):
 
         self.assertRedirects(response, "/shipping/")
         self.assertEqual(Shipping.objects.filter(order_ref="ORD-4001").aggregate(total=Sum("quantity"))["total"], 4)
+<<<<<<< HEAD
 
 
 class RoleAccessTests(TestCase):
@@ -219,3 +227,5 @@ class RoleAccessTests(TestCase):
         self.client.force_login(user)
 
         self.assertEqual(self.client.get("/dashboard/").status_code, 403)
+=======
+>>>>>>> origin/main

@@ -1,0 +1,18 @@
+{% extends "accounts/base.html"}
+{% block content %}
+<div class="container-fluid py-3">
+  <h2>{{ title }}</h2>
+  <div class="card p-3 mb-4"><h5>Create / record</h5><form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary" type="submit">Save</button></form></div>
+  <div class="card p-3"><h5>Records</h5><div class="table-responsive"><table class="table table-striped table-sm"><thead><tr><th>Record</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead><tbody>
+  {% for record in records %}<tr><td>{{ record }}</td><td>{{ record.status|default:"—" }}</td><td>{{ record.created_at|default:record.created_date|default:"—" }}</td><td>
+    {% if kind == 'transfers' and record.status == 'PENDING' and user.is_staff %}<form method="post" action="{% url 'complete_transfer' record.pk %}">{% csrf_token %}<button class="btn btn-sm btn-success">Complete transfer</button></form>{% endif %}
+    {% if kind == 'cycle_counts' and record.status == 'OPEN' and user.is_staff %}<form method="post" action="{% url 'reconcile_count' record.pk %}">{% csrf_token %}<button class="btn btn-sm btn-success">Reconcile</button></form>{% endif %}
+    {% if kind == 'returns' and record.status == 'PENDING' and user.is_staff %}
+      {% if record.return_type == 'SUPPLIER' %}<form method="post" action="{% url 'review_return' record.pk 'send' %}">{% csrf_token %}<button class="btn btn-sm btn-warning">Send to supplier</button></form>{% else %}
+      {% if record.condition == 'GOOD' %}<form method="post" action="{% url 'review_return' record.pk 'restock' %}">{% csrf_token %}<button class="btn btn-sm btn-success">Restock</button></form>{% endif %}
+      <form method="post" action="{% url 'review_return' record.pk 'quarantine' %}">{% csrf_token %}<button class="btn btn-sm btn-warning">Quarantine</button></form>{% endif %}
+    {% endif %}
+    {% if kind == 'orders' %}<a class="btn btn-sm btn-outline-primary" href="{% url 'order_detail' record.pk %}">Open order</a>{% if record.status != 'CANCELLED' and record.status != 'FULFILLED' %}<form method="post" action="{% url 'cancel_order' record.pk %}" class="d-inline">{% csrf_token %}<button class="btn btn-sm btn-outline-danger">Cancel</button></form>{% endif %}{% endif %}
+  </td></tr>{% empty %}<tr><td colspan="4">No records yet.</td></tr>{% endfor %}</tbody></table></div></div>
+</div>
+{% endblock %}

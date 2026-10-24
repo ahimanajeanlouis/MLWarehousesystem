@@ -23,6 +23,7 @@
     </div>
 
     <nav class="menu">
+<<<<<<< HEAD
       {% if 'dashboard' in accessible_modules %}<a class="active" href="{% url 'dashboard' %}">Dashboard</a>{% endif %}
       {% if 'receiving' in accessible_modules %}<a href="{% url 'receiving' %}">Receiving</a>{% endif %}
       {% if 'putaway' in accessible_modules %}<a href="{% url 'putaway' %}">Putaway</a>{% endif %}
@@ -30,6 +31,31 @@
       {% if 'picking' in accessible_modules %}<a href="{% url 'picking' %}">Picking</a>{% endif %}
       {% if 'packing' in accessible_modules %}<a href="{% url 'packing' %}">Packing</a>{% endif %}
       {% if 'shipping' in accessible_modules %}<a href="{% url 'shipping' %}">Shipping</a>{% endif %}
+=======
+      <a class="active" href="{% url 'dashboard' %}">Dashboard</a>
+      <a href="{% url 'receiving' %}">Receiving</a>
+      <a href="{% url 'putaway' %}">Putaway</a>
+      <a href="{% url 'inventory' %}">Inventory</a>
+      <a href="{% url 'picking' %}">Picking</a>
+      <a href="{% url 'packing' %}">Packing</a>
+      <a href="{% url 'suppliers' %}">Suppliers</a>
+      <a href="{% url 'customers' %}">Customers</a>
+      <a href="{% url 'locations' %}">Locations</a>
+      <a href="{% url 'adjustments' %}">Stock Adjustments</a>
+      <a href="{% url 'reports' %}">Reports & Audit</a>
+      <a href="{% url 'shipping' %}">Shipping</a>
+      <a href="{% url 'suppliers' %}">Suppliers</a>
+      <a href="{% url 'customers' %}">Customers</a>
+      <a href="{% url 'locations' %}">Warehouse Locations</a>
+      <a href="{% url 'transfers' %}">Stock Transfers</a>
+      <a href="{% url 'orders' %}">Customer Orders</a>
+      <a href="{% url 'cycle_counts' %}">Cycle Counts</a>
+      <a href="{% url 'returns' %}">Returns / Quarantine</a>
+      <a href="{% url 'batches' %}">Batch Tracking</a>
+      <a href="{% url 'adjustments' %}">Stock Adjustments</a>
+      <a href="{% url 'reports' %}">Reports</a>
+      {% if user.is_staff %}<a href="{% url 'staff_roles' %}">Staff Roles</a>{% endif %}
+>>>>>>> origin/main
 
       <form method="POST" action="{% url 'logout' %}" style="display:inline;">
         {% csrf_token %}
@@ -61,54 +87,96 @@
     <!-- 6 CORE OPERATIONS -->
     <section class="ops-grid">
 
+<<<<<<< HEAD
       {% if 'receiving' in dashboard_modules %}<div class="op-card">
+=======
+      <div class="op-card">
+>>>>>>> origin/main
         <i class="fa-solid fa-truck-ramp-box"></i>
         <h3>{{ receiving }}</h3>
         <p>Receiving</p>
         <span>Inbound Goods</span>
+<<<<<<< HEAD
       </div>{% endif %}
 
       {% if 'putaway' in dashboard_modules %}<div class="op-card">
+=======
+      </div>
+
+      <div class="op-card">
+>>>>>>> origin/main
         <i class="fa-solid fa-boxes-stacked"></i>
         <h3>{{ putaway }}</h3>
         <p>Putaway</p>
         <span>Storage Tasks</span>
+<<<<<<< HEAD
       </div>{% endif %}
 
       {% if 'inventory' in dashboard_modules %}<div class="op-card">
+=======
+      </div>
+
+      <div class="op-card">
+>>>>>>> origin/main
         <i class="fa-solid fa-warehouse"></i>
         <h3>{{ inventory }}</h3>
         <p>Inventory</p>
         <span>Total Stock Items</span>
+<<<<<<< HEAD
       </div>{% endif %}
 
       {% if 'picking' in dashboard_modules %}<div class="op-card">
+=======
+      </div>
+
+      <div class="op-card">
+>>>>>>> origin/main
         <i class="fa-solid fa-hand-pointer"></i>
         <h3>{{ picking }}</h3>
         <p>Picking</p>
         <span>Orders in Process</span>
+<<<<<<< HEAD
       </div>{% endif %}
 
       {% if 'packing' in dashboard_modules %}<div class="op-card">
+=======
+      </div>
+
+      <div class="op-card">
+>>>>>>> origin/main
         <i class="fa-solid fa-box"></i>
         <h3>{{ packing }}</h3>
         <p>Packing</p>
         <span>Ready for Packing</span>
+<<<<<<< HEAD
       </div>{% endif %}
 
       {% if 'shipping' in dashboard_modules %}<div class="op-card">
+=======
+      </div>
+
+      <div class="op-card">
+>>>>>>> origin/main
         <i class="fa-solid fa-shipping-fast"></i>
         <h3>{{ shipping }}</h3>
         <p>Shipping</p>
         <span>Outbound Deliveries</span>
+<<<<<<< HEAD
       </div>{% endif %}
+=======
+      </div>
+>>>>>>> origin/main
 
     </section>
 
     <!-- ========================= -->
     <!-- FEFO EXPIRY ALERTS (NEW) -->
     <!-- ========================= -->
+<<<<<<< HEAD
     {% if 'receiving' in dashboard_modules %}<section class="panel">
+=======
+    <section class="panel">
+>>>>>>> origin/main
 
       <div class="panel-header">
         <h3>⚠ Expiry Alerts (FEFO System)</h3>
@@ -147,7 +215,11 @@
 
       </table>
 
+<<<<<<< HEAD
     </section>{% endif %}
+=======
+    </section>
+>>>>>>> origin/main
 
     <!-- ACTIVITY TABLE -->
     <section class="panel">

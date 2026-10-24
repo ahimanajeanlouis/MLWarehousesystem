@@ -15,7 +15,11 @@ class ReceivingForm(StyledModelForm):
         model = Receiving
         fields = [
             "product_name", "sku", "quantity", "unit_price",
+<<<<<<< HEAD
             "supplier", "expiry_date", "condition",
+=======
+            "supplier", "supplier_record", "batch_number", "expiry_date", "condition",
+>>>>>>> origin/main
         ]
         widgets = {
             "quantity": forms.NumberInput(attrs={"min": 1}),
@@ -51,7 +55,11 @@ class PutawayForm(StyledModelForm):
 
     class Meta:
         model = Putaway
+<<<<<<< HEAD
         fields = ["receiving", "location"]
+=======
+        fields = ["receiving", "location", "location_ref"]
+>>>>>>> origin/main
 
     def clean_location(self):
         value = self.cleaned_data["location"].strip()
@@ -204,7 +212,11 @@ class ShippingForm(StyledModelForm):
 
     class Meta:
         model = Shipping
+<<<<<<< HEAD
         fields = ["order_ref", "product", "quantity", "destination"]
+=======
+        fields = ["order_ref", "product", "quantity", "destination", "carrier", "tracking_number"]
+>>>>>>> origin/main
         widgets = {
             "quantity": forms.NumberInput(attrs={"min": 1}),
             "destination": forms.TextInput(attrs={"placeholder": "Customer / delivery address"}),
@@ -221,3 +233,87 @@ class ShippingForm(StyledModelForm):
         if not value:
             raise forms.ValidationError("Destination is required.")
         return value
+<<<<<<< HEAD
+=======
+
+from .models import Customer, Supplier, WarehouseLocation, StockAdjustment
+
+class SupplierForm(StyledModelForm):
+    class Meta:
+        model = Supplier
+        fields = ["code", "name", "contact_person", "email", "phone", "address"]
+
+class CustomerForm(StyledModelForm):
+    class Meta:
+        model = Customer
+        fields = ["code", "name", "contact_person", "email", "phone", "billing_address", "shipping_address"]
+
+class WarehouseLocationForm(StyledModelForm):
+    class Meta:
+        model = WarehouseLocation
+        fields = ["warehouse", "zone", "aisle", "rack", "bin", "is_active"]
+
+class StockAdjustmentForm(StyledModelForm):
+    class Meta:
+        model = StockAdjustment
+        fields = ["product", "change_quantity", "reason", "notes"]
+        widgets = {"change_quantity": forms.NumberInput(attrs={"placeholder": "e.g. -3 or 10"})}
+
+    def clean_change_quantity(self):
+        value = self.cleaned_data["change_quantity"]
+        if value == 0:
+            raise forms.ValidationError("Adjustment must change stock by at least one unit.")
+        return value
+
+from .models import Order, OrderLine, CycleCount, ReturnRecord, StockTransfer, ProductBatch
+
+class StockTransferForm(StyledModelForm):
+    class Meta:
+        model = StockTransfer
+        fields = ['product','source','destination','quantity']
+        widgets = {'quantity': forms.NumberInput(attrs={'min': 1})}
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get('source') == cleaned.get('destination'):
+            raise forms.ValidationError('Source and destination must be different locations.')
+        if cleaned.get('quantity', 0) <= 0:
+            raise forms.ValidationError('Quantity must be greater than zero.')
+        return cleaned
+
+class OrderForm(StyledModelForm):
+    class Meta:
+        model = Order
+        fields = ['reference','customer','shipping_address','billing_address','notes']
+
+class OrderLineForm(StyledModelForm):
+    class Meta:
+        model = OrderLine
+        fields = ['product','quantity','unit_price']
+        widgets = {'quantity': forms.NumberInput(attrs={'min': 1}), 'unit_price': forms.NumberInput(attrs={'min': 0,'step':'0.01'})}
+    def clean_quantity(self):
+        value = self.cleaned_data['quantity']
+        if value < 1: raise forms.ValidationError('Quantity must be at least one.')
+        return value
+
+class CycleCountForm(StyledModelForm):
+    class Meta:
+        model = CycleCount
+        fields = ['product','location','counted_quantity','notes']
+        widgets = {'counted_quantity': forms.NumberInput(attrs={'min':0})}
+
+class ReturnRecordForm(StyledModelForm):
+    class Meta:
+        model = ReturnRecord
+        fields = ['return_type','product','quantity','condition','reference','reason']
+        widgets = {'quantity': forms.NumberInput(attrs={'min':1})}
+    def clean_quantity(self):
+        value = self.cleaned_data['quantity']
+        if value < 1: raise forms.ValidationError('Quantity must be at least one.')
+        return value
+
+class ProductBatchForm(StyledModelForm):
+    class Meta:
+        model = ProductBatch
+        fields = ['product','batch_number','quantity','received_date','expiry_date','quarantined']
+        widgets = {'received_date': forms.DateInput(attrs={'type':'date'}), 'expiry_date': forms.DateInput(attrs={'type':'date'})}
+>>>>>>> origin/main
