@@ -1,73 +1,34 @@
+{% extends "accounts/base.html" %}
 {% load static %}
+{% block content %}
+<div class="container py-4" style="max-width: 680px">
+  <div class="card shadow-sm">
+    <div class="card-body p-4">
+      <h2 class="mb-3">Create employee</h2>
+      <p class="text-muted">Only administrators and managers can create employee accounts.</p>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>Create Account</title>
-
-    <link rel="stylesheet"
-          href="{% static 'accounts/styles.css' %}">
-
-</head>
-
-<body>
-
-<div class="register-container">
-
-    <form method="POST" class="register-form">
-
+      <form method="POST">
         {% csrf_token %}
+        <div class="mb-3"><label class="form-label">Username</label><input type="text" name="username" class="form-control" value="{{ submitted.username|default:'' }}" required></div>
+        <div class="mb-3"><label class="form-label">Email</label><input type="email" name="email" class="form-control" value="{{ submitted.email|default:'' }}" required></div>
+        <div class="mb-3"><label class="form-label">Password</label><input type="password" name="password" class="form-control" minlength="8" required></div>
+        <div class="mb-3"><label class="form-label">Confirm password</label><input type="password" name="confirm_password" class="form-control" minlength="8" required></div>
 
-        <h1>Create Account</h1>
+        <fieldset class="mb-3">
+          <legend class="fs-6">Roles</legend>
+          {% for role in roles %}
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="roles" value="{{ role.code }}" id="create-{{ role.code }}" {% if role.code in submitted_roles %}checked{% endif %}>
+            <label class="form-check-label" for="create-{{ role.code }}">{{ role.name }}</label>
+          </div>
+          {% endfor %}
+        </fieldset>
 
-        {% if messages %}
-            {% for message in messages %}
-                <div class="message">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        <input type="text"
-               name="username"
-               placeholder="Username"
-               required>
-
-        <input type="email"
-               name="email"
-               placeholder="Email"
-               required>
-
-        <input type="password"
-               name="password"
-               placeholder="Password (minimum 8 characters)"
-               minlength="8"
-               required>
-
-        <input type="password"
-               name="confirm_password"
-               placeholder="Confirm Password"
-               required>
-
-        <button type="submit">
-            Create Account
-        </button>
-
-        <p>
-            Already have an account?
-            <a href="{% url 'login' %}">
-                Login
-            </a>
-        </p>
-
-    </form>
-
+        <div class="form-check mb-3"><input class="form-check-input" type="checkbox" name="active" id="active" checked><label class="form-check-label" for="active">Active employee</label></div>
+        <button type="submit" class="btn btn-primary">Create employee</button>
+        <a class="btn btn-secondary" href="{% url 'staff_roles' %}">Cancel</a>
+      </form>
+    </div>
+  </div>
 </div>
-
-</body>
-</html>
+{% endblock %}

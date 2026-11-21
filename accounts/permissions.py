@@ -17,17 +17,18 @@ ROLE_MODULES = {
 
 
 def modules_for_user(user):
-    if user.is_superuser:
+    if user.is_superuser or user.is_staff:
         return set(ROLE_MODULES["ADMIN"])
 
-    try:
-        profile = user.staff_profile
-    except AttributeError:
+    profile = getattr(user, "staff_profile", None)
+    if profile is None or not profile.active:
         return set()
 
-    if not profile.active:
-        return set()
-    return set(ROLE_MODULES.get(profile.role, set()))
+    modules = set()
+    role_codes = profile.roles.values_list("code", flat=True)
+    for role_code in role_codes:
+        modules.update(ROLE_MODULES.get(role_code, set()))
+    return modules
 
 
 def module_required(module):
