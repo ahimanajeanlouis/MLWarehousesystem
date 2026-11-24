@@ -1,0 +1,229 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Manager Dashboard | MLWarehouseSystem</title>
+  <link rel="stylesheet" href="{% static 'accounts/manager_dashboard.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+  <div class="manager-shell">
+    <aside class="manager-sidebar" id="manager-sidebar">
+      <a class="manager-brand" href="{% url 'dashboard' %}">
+        <span class="brand-icon"><i class="fa-solid fa-warehouse"></i></span>
+        <span><strong>MLWarehouseSystem</strong><small>Smart Warehouse Management</small></span>
+      </a>
+      <nav class="manager-nav" aria-label="Main navigation">
+        <a class="active" href="{% url 'dashboard' %}"><i class="fa-solid fa-house"></i> Dashboard</a>
+        <a href="{% url 'staff_roles' %}"><i class="fa-solid fa-users"></i> Employees</a>
+        <a href="{% url 'inventory' %}"><i class="fa-solid fa-boxes-stacked"></i> Inventory</a>
+        <a href="{% url 'receiving' %}"><i class="fa-solid fa-truck-ramp-box"></i> Receiving</a>
+        <a href="{% url 'putaway' %}"><i class="fa-solid fa-dolly"></i> Putaway</a>
+        <a href="{% url 'picking' %}"><i class="fa-solid fa-cart-shopping"></i> Picking</a>
+        <a href="{% url 'packing' %}"><i class="fa-solid fa-box"></i> Packing</a>
+        <a href="{% url 'shipping' %}"><i class="fa-solid fa-truck"></i> Shipping</a>
+        <a href="{% url 'transfers' %}"><i class="fa-solid fa-right-left"></i> Warehouse Transfers</a>
+        <a href="{% url 'adjustments' %}">
+          <i class="fa-solid fa-clipboard-check"></i> Approvals
+          {% if pending_approval_count %}<span class="nav-count">{{ pending_approval_count }}</span>{% endif %}
+        </a>
+        <a href="{% url 'reports' %}"><i class="fa-solid fa-chart-column"></i> Reports</a>
+        <a href="{% url 'reports' %}"><i class="fa-solid fa-clock-rotate-left"></i> Activity Logs</a>
+      </nav>
+      <form class="manager-logout" method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
+      </form>
+    </aside>
+
+    <main class="manager-main">
+      <header class="manager-topbar">
+        <button class="sidebar-toggle" type="button" aria-label="Toggle navigation" aria-controls="manager-sidebar" aria-expanded="false">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="topbar-spacer"></div>
+        {% if pending_approval_count %}
+          <a class="notification-link" href="{% url 'adjustments' %}" aria-label="{{ pending_approval_count }} pending approvals">
+            <i class="fa-regular fa-bell"></i><span>{{ pending_approval_count }}</span>
+          </a>
+        {% endif %}
+        <div class="manager-user">
+          <span class="user-avatar">{{ request.user.username|first|upper }}</span>
+          <span><strong>{{ request.user.get_full_name|default:request.user.username }}</strong><small>Warehouse Manager</small></span>
+        </div>
+      </header>
+
+      <div class="dashboard-content">
+        <section class="page-heading">
+          <div>
+            <h1>Manager Dashboard</h1>
+            <p>Overview of warehouse operations and activities</p>
+          </div>
+          <form class="period-filter" method="get">
+            <label for="dashboard-period"><i class="fa-regular fa-calendar"></i><span class="visually-hidden">Activity period</span></label>
+            <select id="dashboard-period" name="period" onchange="this.form.submit()">
+              <option value="7" {% if period == "7" %}selected{% endif %}>Last 7 Days</option>
+              <option value="30" {% if period == "30" %}selected{% endif %}>Last 30 Days</option>
+              <option value="90" {% if period == "90" %}selected{% endif %}>Last 90 Days</option>
+            </select>
+          </form>
+        </section>
+
+        {% if messages %}
+          <div class="dashboard-messages">
+            {% for message in messages %}<p class="dashboard-message">{{ message }}</p>{% endfor %}
+          </div>
+        {% endif %}
+
+        <section class="summary-grid" aria-label="Warehouse summary">
+          <article class="summary-card blue-card">
+            <span class="summary-icon"><i class="fa-solid fa-users"></i></span>
+            <p>Total Employees</p>
+            <strong>{{ employee_count }}</strong>
+            <small class="positive">Active: {{ active_employee_count }}</small>
+          </article>
+          <article class="summary-card green-card">
+            <span class="summary-icon"><i class="fa-solid fa-cube"></i></span>
+            <p>Total Products</p>
+            <strong>{{ product_count }}</strong>
+            <small class="positive">Available units: {{ product_units }}</small>
+          </article>
+          <article class="summary-card amber-card">
+            <span class="summary-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
+            <p>Low-Stock Products</p>
+            <strong>{{ low_stock_count }}</strong>
+            <small class="attention">Needs attention</small>
+          </article>
+          <article class="summary-card purple-card">
+            <span class="summary-icon"><i class="fa-solid fa-cart-shopping"></i></span>
+            <p>Pending Orders</p>
+            <strong>{{ pending_order_count }}</strong>
+            <small>Open or partially fulfilled</small>
+          </article>
+          <article class="summary-card cyan-card">
+            <span class="summary-icon"><i class="fa-solid fa-truck"></i></span>
+            <p>Pending Receiving</p>
+            <strong>{{ pending_receiving_count }}</strong>
+            <small>Awaiting putaway</small>
+          </article>
+          <article class="summary-card mint-card">
+            <span class="summary-icon"><i class="fa-solid fa-check"></i></span>
+            <p>Pending Approvals</p>
+            <strong>{{ pending_approval_count }}</strong>
+            <small class="attention">Review required</small>
+          </article>
+        </section>
+
+        <section class="insights-grid">
+          <article class="dashboard-card trend-card">
+            <div class="card-heading">
+              <h2>Warehouse Activity Trend</h2>
+              <div class="chart-legend">
+                {% for series in trend_series %}
+                  <span><i style="--legend-color: {{ series.color }}"></i>{{ series.name }}</span>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="chart-scroll">
+              <svg class="activity-chart" viewBox="0 0 640 250" role="img" aria-label="Receiving, shipping, and order activity over the selected period">
+                {% for grid in trend_grid %}
+                  <line class="chart-grid" x1="48" y1="{{ grid.y }}" x2="588" y2="{{ grid.y }}"></line>
+                  <text class="chart-axis-label" x="38" y="{{ grid.y|add:4 }}" text-anchor="end">{{ grid.label }}</text>
+                {% endfor %}
+                {% for point in trend_points %}
+                  <text class="chart-date-label" x="{{ point.x }}" y="235" text-anchor="middle">{{ point.label }}</text>
+                {% endfor %}
+                {% for series in trend_series %}
+                  <polyline class="chart-line" points="{{ series.point_string }}" style="--line-color: {{ series.color }}"></polyline>
+                  {% for point in series.points %}
+                    <circle class="chart-dot" cx="{{ point.x }}" cy="{{ point.y }}" r="4" style="--line-color: {{ series.color }}"></circle>
+                  {% endfor %}
+                {% endfor %}
+              </svg>
+            </div>
+          </article>
+
+          <article class="dashboard-card stock-card">
+            <div class="card-heading"><h2>Stock Status</h2></div>
+            <div class="stock-content">
+              <div class="stock-donut"
+                   style="--stock-in: {{ stock_percentages.in_stock }}%; --stock-low: {{ stock_percentages.low_stock }}%; --stock-out: {{ stock_percentages.out_of_stock }}%">
+                <div><strong>{{ stock_percentages.in_stock }}%</strong><span>In Stock</span></div>
+              </div>
+              <ul class="stock-legend">
+                <li><i class="legend-in"></i><span>In Stock<strong>{{ in_stock_count }}</strong></span></li>
+                <li><i class="legend-low"></i><span>Low Stock<strong>{{ low_stock_count }}</strong></span></li>
+                <li><i class="legend-out"></i><span>Out of Stock<strong>{{ out_of_stock_count }}</strong></span></li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="dashboard-card quick-card">
+            <div class="card-heading"><h2>Quick Actions</h2></div>
+            <div class="quick-actions">
+              <a class="quick-action action-blue" href="{% url 'register' %}"><i class="fa-solid fa-plus"></i> Register Employee</a>
+              <a class="quick-action action-green" href="{% url 'inventory' %}"><i class="fa-solid fa-magnifying-glass"></i> View Inventory</a>
+              <a class="quick-action action-amber" href="{% url 'adjustments' %}"><i class="fa-solid fa-check"></i> Review Approvals</a>
+              <a class="quick-action action-purple" href="{% url 'download_report' %}?period=monthly"><i class="fa-solid fa-chart-column"></i> Generate Report</a>
+            </div>
+          </article>
+        </section>
+
+        <section class="lower-grid">
+          <article class="dashboard-card recent-card">
+            <div class="card-heading">
+              <h2>Recent Activities</h2>
+              <a href="{% url 'reports' %}">View all <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <ul class="activity-list">
+              {% for activity in recent_activities %}
+                <li>
+                  <span class="activity-icon"><i class="fa-solid fa-circle-check"></i></span>
+                  <span class="activity-description">
+                    <strong>{{ activity.get_action_display|default:activity.action }} {{ activity.object_type|lower }}</strong>
+                    <small>{% if activity.object_reference %}{{ activity.object_reference }}{% else %}{{ activity.details|default:"Warehouse activity" }}{% endif %}</small>
+                  </span>
+                  <time datetime="{{ activity.created_at|date:'c' }}">{{ activity.created_at|timesince }} ago</time>
+                </li>
+              {% empty %}
+                <li class="empty-state">No recent activities recorded yet.</li>
+              {% endfor %}
+            </ul>
+          </article>
+
+          <article class="dashboard-card performance-card">
+            <div class="card-heading">
+              <h2>Warehouse Performance</h2>
+              <a href="{% url 'reports' %}">View report <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="performance-grid">
+              {% for metric in performance_metrics %}
+                <div class="performance-item">
+                  <div class="performance-ring {{ metric.color }}{% if metric.percent is None %} no-data{% endif %}"
+                       {% if metric.percent is not None %}style="--progress: {{ metric.percent }}%"{% endif %}>
+                    <span>{% if metric.percent is not None %}{{ metric.percent }}%{% else %}—{% endif %}</span>
+                  </div>
+                  <strong>{{ metric.label }}</strong>
+                  <small>{% if metric.total %}{{ metric.completed }} of {{ metric.total }}{% else %}No data yet{% endif %}</small>
+                </div>
+              {% endfor %}
+            </div>
+          </article>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script>
+    const sidebarToggle = document.querySelector(".sidebar-toggle");
+    const managerSidebar = document.querySelector(".manager-sidebar");
+    if (sidebarToggle && managerSidebar) {
+      sidebarToggle.addEventListener("click", () => {
+        const isOpen = managerSidebar.classList.toggle("is-open");
+        sidebarToggle.setAttribute("aria-expanded", String(isOpen));
+      });
+    }
+  </script>
+</body>
+</html>

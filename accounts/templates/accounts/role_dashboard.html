@@ -1,0 +1,141 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ dashboard_title }} | MLWarehouseSystem</title>
+  <link rel="stylesheet" href="{% static 'accounts/manager_dashboard.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+  <div class="manager-shell">
+    <aside class="manager-sidebar" id="manager-sidebar">
+      <a class="manager-brand" href="{% url 'dashboard' %}">
+        <span class="brand-icon"><i class="fa-solid fa-warehouse"></i></span>
+        <span><strong>MLWarehouseSystem</strong><small>Smart Warehouse Management</small></span>
+      </a>
+      <nav class="manager-nav" aria-label="Main navigation">
+        <a class="active" href="{% url 'dashboard' %}"><i class="fa-solid fa-house"></i> Dashboard</a>
+        {% if 'receiving' in accessible_modules %}<a href="{% url 'receiving' %}"><i class="fa-solid fa-truck-ramp-box"></i> Receiving</a>{% endif %}
+        {% if 'putaway' in accessible_modules %}<a href="{% url 'putaway' %}"><i class="fa-solid fa-dolly"></i> Putaway</a>{% endif %}
+        {% if 'inventory' in accessible_modules %}<a href="{% url 'inventory' %}"><i class="fa-solid fa-boxes-stacked"></i> Inventory</a>{% endif %}
+        {% if 'picking' in accessible_modules %}<a href="{% url 'picking' %}"><i class="fa-solid fa-hand-pointer"></i> Picking</a>{% endif %}
+        {% if 'packing' in accessible_modules %}<a href="{% url 'packing' %}"><i class="fa-solid fa-box"></i> Packing</a>{% endif %}
+        {% if 'shipping' in accessible_modules %}<a href="{% url 'shipping' %}"><i class="fa-solid fa-truck"></i> Shipping</a>{% endif %}
+      </nav>
+      <form class="manager-logout" method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
+      </form>
+    </aside>
+
+    <main class="manager-main">
+      <header class="manager-topbar">
+        <button class="sidebar-toggle" type="button" aria-label="Toggle navigation" aria-controls="manager-sidebar" aria-expanded="false">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="topbar-spacer"></div>
+        <div class="manager-user">
+          <span class="user-avatar">{{ request.user.username|first|upper }}</span>
+          <span><strong>{{ request.user.get_full_name|default:request.user.username }}</strong><small>Warehouse Employee</small></span>
+        </div>
+      </header>
+
+      <div class="dashboard-content">
+        <section class="page-heading">
+          <div>
+            <h1>{{ dashboard_title }}</h1>
+            <p>{{ dashboard_description }}</p>
+          </div>
+          <form class="role-report-form" method="get" action="{% url 'download_report' %}">
+            <label for="report-period">Download report</label>
+            <select id="report-period" name="period" required>
+              <option value="" selected disabled>Select period</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+            <button type="submit"><i class="fa-solid fa-download"></i> PDF</button>
+          </form>
+        </section>
+
+        {% if messages %}
+          <div class="dashboard-messages">
+            {% for message in messages %}<p class="dashboard-message">{{ message }}</p>{% endfor %}
+          </div>
+        {% endif %}
+
+        {% if dashboard_cards %}
+          <section class="summary-grid role-summary-grid{% if dashboard_cards|length == 1 %} single-module{% endif %}" aria-label="Assigned warehouse modules">
+            {% for card in dashboard_cards %}
+              <a class="summary-card role-module-card {{ card.color }}" href="{{ card.url }}">
+                <span class="summary-icon"><i class="fa-solid {{ card.icon }}"></i></span>
+                <p>{{ card.title }}</p>
+                <strong>{{ card.value }}</strong>
+                <small>{{ card.detail }}</small>
+                <span class="role-card-action">Open {{ card.title }} <i class="fa-solid fa-arrow-right"></i></span>
+              </a>
+            {% endfor %}
+          </section>
+        {% else %}
+          <section class="dashboard-card role-empty-state">
+            <i class="fa-solid fa-user-shield"></i>
+            <h2>No work modules assigned</h2>
+            <p>Ask your administrator or manager to assign a warehouse role to your employee account.</p>
+          </section>
+        {% endif %}
+
+        {% if 'receiving' in accessible_modules %}
+          <section class="dashboard-card role-expiry-card">
+            <div class="card-heading"><h2>Expiry Alerts</h2></div>
+            <div class="role-table-scroll">
+              <table class="role-expiry-table">
+                <thead><tr><th>Product</th><th>SKU</th><th>Quantity</th><th>Expiry Date</th></tr></thead>
+                <tbody>
+                  {% for batch in expiring_batches %}
+                    <tr class="{{ batch.row_class }}">
+                      <td>{{ batch.product_name }}</td><td>{{ batch.sku }}</td>
+                      <td>{{ batch.quantity }}</td><td>{{ batch.expiry_date }}</td>
+                    </tr>
+                  {% empty %}
+                    <tr><td colspan="4">No products expiring in the next 30 days.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        {% endif %}
+
+        <section class="dashboard-card recent-card role-recent-card">
+          <div class="card-heading"><h2>Recent Activity For Your Modules</h2></div>
+          <ul class="activity-list">
+            {% for activity in recent_activities %}
+              <li>
+                <span class="activity-icon"><i class="fa-solid fa-circle-check"></i></span>
+                <span class="activity-description">
+                  <strong>{{ activity.get_activity_type_display }}</strong>
+                  <small>{{ activity.reference }} · {{ activity.status|title }}</small>
+                </span>
+                <time datetime="{{ activity.created_at|date:'c' }}">{{ activity.created_at|timesince }} ago</time>
+              </li>
+            {% empty %}
+              <li class="empty-state">No recent activity for your assigned modules.</li>
+            {% endfor %}
+          </ul>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script>
+    const sidebarToggle = document.querySelector(".sidebar-toggle");
+    const managerSidebar = document.querySelector(".manager-sidebar");
+    if (sidebarToggle && managerSidebar) {
+      sidebarToggle.addEventListener("click", () => {
+        const isOpen = managerSidebar.classList.toggle("is-open");
+        sidebarToggle.setAttribute("aria-expanded", String(isOpen));
+      });
+    }
+  </script>
+</body>
+</html>

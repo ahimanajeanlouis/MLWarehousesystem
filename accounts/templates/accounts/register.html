@@ -1,0 +1,176 @@
+
+{% extends "accounts/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="employee-register-page">
+
+    <div class="employee-register-card">
+
+        <!-- Header -->
+        <div class="register-header">
+            <div class="register-icon">👤+</div>
+
+            <div>
+                <h2>Create Employee</h2>
+                <p>MLWarehouseSystem · Employee Management</p>
+            </div>
+        </div>
+
+        <div class="register-intro">
+            <h3>Employee Information</h3>
+            <p>Enter employee details and assign the operational roles they need.</p>
+        </div>
+
+        <!-- Django messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="register-alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <!-- Account information -->
+            <div class="register-section-title">
+                <span>01</span>
+                Account Information
+            </div>
+
+            <div class="register-fields">
+
+                <div class="register-field">
+                    <label for="username">Username <span>*</span></label>
+                    <input
+                        type="text"
+                        name="username"
+                        id="username"
+                        placeholder="Enter employee username"
+                        value="{{ submitted.username|default:'' }}"
+                        autocomplete="username"
+                        required
+                    >
+                </div>
+
+                <div class="register-field">
+                    <label for="email">Email Address <span>*</span></label>
+                    <input
+                        type="email"
+                        name="email"
+                        id="email"
+                        placeholder="employee@example.com"
+                        value="{{ submitted.email|default:'' }}"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
+
+                <div class="register-field">
+                    <label for="password">Password <span>*</span></label>
+                    <input
+                        type="password"
+                        name="password"
+                        id="password"
+                        placeholder="Minimum 8 characters"
+                        minlength="8"
+                        autocomplete="new-password"
+                        required
+                    >
+                    <small>Use a strong password with letters, numbers and symbols.</small>
+                </div>
+
+                <div class="register-field">
+                    <label for="confirm_password">Confirm Password <span>*</span></label>
+                    <input
+                        type="password"
+                        name="confirm_password"
+                        id="confirm_password"
+                        placeholder="Enter password again"
+                        minlength="8"
+                        autocomplete="new-password"
+                        required
+                    >
+                </div>
+
+            </div>
+
+            <!-- Roles -->
+            <div class="register-section-title role-heading">
+                <span>02</span>
+                Assign Employee Roles
+            </div>
+
+            <p class="role-description">
+                Select one or more roles. An employee can access all modules assigned to their account.
+            </p>
+
+            <div class="employee-roles">
+
+                {% for role in roles %}
+                    <label class="employee-role-option" for="create-{{ role.code }}">
+
+                        <input
+                            type="checkbox"
+                            name="roles"
+                            value="{{ role.code }}"
+                            id="create-{{ role.code }}"
+                            {% if role.code in submitted_roles %}checked{% endif %}
+                        >
+
+                        <span class="custom-role-checkbox"></span>
+
+                        <span class="role-name">{{ role.name }}</span>
+
+                    </label>
+                {% empty %}
+                    <div class="no-roles">
+                        No operational roles are available. Please contact the administrator.
+                    </div>
+                {% endfor %}
+
+            </div>
+
+            <!-- Employee status -->
+            <div class="employee-status-box">
+
+                <div>
+                    <strong>Employee Account Status</strong>
+                    <p>Allow this employee to access the warehouse system.</p>
+                </div>
+
+                <label class="status-switch">
+                    <input type="checkbox" name="active" id="active" checked>
+                    <span class="status-slider"></span>
+                </label>
+
+            </div>
+
+            <!-- Actions -->
+            <div class="register-actions">
+
+                <button type="submit" class="create-employee-btn">
+                    <span>＋</span> Create Employee
+                </button>
+
+                <a href="{% url 'staff_roles' %}" class="cancel-employee-btn">
+                    Cancel
+                </a>
+
+            </div>
+
+            <div class="register-footer">
+                <span>🔒</span>
+                Only authorized administrators and managers can create employee accounts.
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

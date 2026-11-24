@@ -1,0 +1,58 @@
+
+{% extends "accounts/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'accounts/styles.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="register-container">
+
+    <form method="POST" class="register-form">
+
+        {% csrf_token %}
+
+        <h1>Create Account</h1>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <input type="text"
+               name="username"
+               placeholder="Username"
+               required>
+
+        <input type="email"
+               name="email"
+               placeholder="Email"
+               required>
+
+        <input type="password"
+               name="password"
+               placeholder="Password"
+               required>
+
+        <input type="password"
+               name="confirm_password"
+               placeholder="Confirm Password"
+               required>
+
+        <button type="submit">Create Account</button>
+
+        <p>
+            Already have an account?
+            <a href="{% url 'login' %}">Login</a>
+        </p>
+
+    </form>
+
+</div>
+
+{% endblock %}
